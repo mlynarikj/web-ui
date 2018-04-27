@@ -110,7 +110,7 @@ export class PaymentsPanelComponent implements OnInit, OnDestroy {
   private subscribeToActions() {
     this.paymentCreatedSubscription = this.actionsSubject.subscribe(data => {
       if (data.type === PaymentsActionType.CREATE_PAYMENT_SUCCESS) {
-        console.log("pajoment created");
+        console.log("payment created");
         console.log(this.lastPayment);
       }
     });

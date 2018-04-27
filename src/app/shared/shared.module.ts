@@ -65,8 +65,7 @@ import {InputModule} from "./input/input.module";
     PerspectiveDirective,
     RemovePlaceholderOnFocusDirective,
     LayoutItem,
-    SliderComponent,
-    LayoutItem
+    SliderComponent
   ],
   exports: [
     CommonModule,
@@ -82,6 +81,7 @@ import {InputModule} from "./input/input.module";
     SearchBoxModule,
     SliderComponent,
     TagModule,
+    LayoutItem,
     InputModule,
     DialogsModule
   ]
