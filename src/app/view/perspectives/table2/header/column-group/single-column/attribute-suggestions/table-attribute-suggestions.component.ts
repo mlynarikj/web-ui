@@ -18,7 +18,6 @@
  */
 
 import {ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges} from '@angular/core';
-import {Router} from '@angular/router';
 import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs/Observable';
 import {map} from 'rxjs/operators';
@@ -33,9 +32,8 @@ import {selectQuery} from '../../../../../../../core/store/navigation/navigation
 import {TableHeaderCursor} from '../../../../../../../core/store/tables/table-cursor';
 import {DEFAULT_TABLE_ID, TableModel} from '../../../../../../../core/store/tables/table.model';
 import {TablesAction} from '../../../../../../../core/store/tables/tables.action';
-import {extractAttributeName, findAttributeById} from '../../../../../../../shared/utils/attribute.utils';
-
-declare let $: any;
+import {DialogService} from '../../../../../../../dialog/dialog.service';
+import {extractAttributeLastName, findAttributeByName} from '../../../../../../../shared/utils/attribute.utils';
 
 interface LinkedAttribute {
 
@@ -62,26 +60,26 @@ export class TableAttributeSuggestionsComponent implements OnChanges {
   public cursor: TableHeaderCursor;
 
   @Input()
-  public attributeId: string;
+  public attributeName: string;
 
   @Input()
   public collection: CollectionModel;
 
-  public attributeName: string;
+  public lastName: string;
 
-  public constructor(private router: Router,
+  public constructor(private dialogService: DialogService,
                      private store: Store<AppState>) {
   }
 
   public ngOnChanges(changes: SimpleChanges) {
-    if (changes.hasOwnProperty('attributeId') && this.attributeId) {
-      this.attributeName = extractAttributeName(this.attributeId);
+    if (changes.hasOwnProperty('attributeName') && this.attributeName) {
+      this.lastName = extractAttributeLastName(this.attributeName);
     }
   }
 
   public attributeNotExists(): boolean {
     if (this.collection) {
-      return !findAttributeById(this.collection.attributes, this.attributeId);
+      return !findAttributeByName(this.collection.attributes, this.attributeName);
     }
     return false;
   }
@@ -104,13 +102,10 @@ export class TableAttributeSuggestionsComponent implements OnChanges {
   }
 
   public createLinkType({collection}: LinkedAttribute) {
-    this.router.navigate([], {
-      queryParams: {
-        linkCollectionIds: [this.collection.id, collection.id].join(',')
-      },
-      queryParamsHandling: 'merge'
+    const linkCollectionIds = [this.collection.id, collection.id].join(',');
+    this.dialogService.openCreateLinkDialog(linkCollectionIds, linkType => {
+      this.store.dispatch(new NavigationAction.AddLinkToQuery({linkTypeId: linkType.id}));
     });
-    $(`#newLinkDialogModal`).modal('show');
   }
 
   public suggestLinkedAttributes(): Observable<LinkedAttribute[]> {
@@ -131,7 +126,7 @@ export class TableAttributeSuggestionsComponent implements OnChanges {
 
           return filtered.concat(
             collection.attributes
-              .filter(attribute => attribute.name.toLowerCase().startsWith(this.attributeName.toLowerCase()))
+              .filter(attribute => attribute.name.toLowerCase().startsWith(this.lastName.toLowerCase()))
               .map(attribute => ({linkType, collection, attribute}))
               .filter(newAttribute => filtered.every(existingAttribute => !equalLinkedAttributes(newAttribute, existingAttribute)))
           );
@@ -149,7 +144,7 @@ export class TableAttributeSuggestionsComponent implements OnChanges {
 
         return filtered.concat(
           collection.attributes
-            .filter(attribute => attribute.name.toLowerCase().startsWith(this.attributeName.toLowerCase()))
+            .filter(attribute => attribute.name.toLowerCase().startsWith(this.lastName.toLowerCase()))
             .map(attribute => ({collection, attribute}))
             .filter(newAttribute => filtered.every(existingAttribute => !equalLinkedAttributes(newAttribute, existingAttribute)))
         );

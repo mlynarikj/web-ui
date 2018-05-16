@@ -40,16 +40,18 @@ import {selectProjectById, selectProjectsCodesForSelectedOrganization, selectPro
 import {RouterAction} from '../../core/store/router/router.action';
 import {ViewsAction} from '../../core/store/views/views.action';
 import {UserSettingsService} from '../../core/user-settings.service';
-import {ResourceItemType} from './resource-chooser/resource-item-type';
 import {Router} from "@angular/router";
 import {userHasRoleInResource, userRolesInResource} from '../../shared/utils/resource.utils';
 import {UserModel} from '../../core/store/users/user.model';
 import {mapGroupsOnUser, selectCurrentUser, selectCurrentUserForOrganization} from '../../core/store/users/users.state';
 import {selectGroupsDictionary} from '../../core/store/groups/groups.state';
 import {ServiceLimitsAction} from '../../core/store/organizations/service-limits/service-limits.action';
-import {selectAllServiceLimits} from '../../core/store/organizations/service-limits/service-limits.state';
+import {selectAllServiceLimits, selectServiceLimitsByOrganizationId} from '../../core/store/organizations/service-limits/service-limits.state';
 import {ServiceLimitsModel} from '../../core/store/organizations/service-limits/service-limits.model';
 import {Role} from '../../core/model/role';
+import {Perspective} from '../../view/perspectives/perspective';
+import {ResourceType} from '../../core/model/resource-type';
+import {UsersAction} from '../../core/store/users/users.action';
 
 const allowedEmails = ['support@lumeer.io', 'martin@vecerovi.com', 'aturing@lumeer.io'];
 
@@ -190,7 +192,7 @@ export class WorkspaceChooserComponent implements OnInit, OnDestroy {
           if (organization && project) {
             this.updateDefaultWorkspace(organization, project);
             this.clearStore();
-            this.router.navigate(['/w', organization.code, project.code, 'view', 'search', 'files']);
+            this.router.navigate(['/w', organization.code, project.code, 'view', Perspective.Search, 'files']);
           }
         });
     }
@@ -200,12 +202,12 @@ export class WorkspaceChooserComponent implements OnInit, OnDestroy {
     this.store.dispatch(new NotificationsAction.Warning({message}));
   }
 
-  public organizationItemType(): ResourceItemType {
-    return ResourceItemType.Organization;
+  public organizationItemType(): ResourceType {
+    return ResourceType.Organization;
   }
 
-  public projectItemType(): ResourceItemType {
-    return ResourceItemType.Project;
+  public projectItemType(): ResourceType {
+    return ResourceType.Project;
   }
 
   private clearStore() {
@@ -217,10 +219,8 @@ export class WorkspaceChooserComponent implements OnInit, OnDestroy {
   }
 
   private updateDefaultWorkspace(organization: OrganizationModel, project: ProjectModel) {
-    let userSettings = this.userSettingsService.getUserSettings();
-    userSettings.defaultOrganization = organization.code;
-    userSettings.defaultProject = project.code;
-    this.userSettingsService.updateUserSettings(userSettings);
+    const defaultWorkspace = {organizationId: organization.id, projectId: project.id};
+    this.store.dispatch(new UsersAction.SaveDefaultWorkspace({defaultWorkspace}));
   }
 
   private bindData() {

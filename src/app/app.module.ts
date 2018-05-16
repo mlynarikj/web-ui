@@ -21,6 +21,8 @@ import {APP_INITIALIZER, NgModule, TRANSLATIONS, TRANSLATIONS_FORMAT} from '@ang
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {I18n} from '@ngx-translate/i18n-polyfill';
+import {Angulartics2Module, Angulartics2Settings} from 'angulartics2';
+import {Angulartics2GoogleAnalytics} from 'angulartics2/ga';
 import {KeycloakAngularModule, KeycloakService} from 'keycloak-angular';
 import {ContextMenuModule} from 'ngx-contextmenu';
 import {AppRoutingModule} from './app-routing.module';
@@ -31,9 +33,21 @@ import {CoreModule} from './core/core.module';
 import {DocumentsModule} from './documents/documents.module';
 import {ViewModule} from './view/view.module';
 import {WorkspaceModule} from './workspace/workspace.module';
+import { DialogModule } from './dialog/dialog.module';
 
 declare const require; // Use the require method provided by webpack
 const translations = require(`raw-loader!../../${I18N_PATH}`);
+
+export const angularticsSettings: Partial<Angulartics2Settings> = {
+  developerMode: LUMEER_ENV !== 'production',
+  pageTracking: {
+    clearIds: true,
+    idsRegExp: new RegExp('^[0-9a-z]{24}$')
+  },
+  ga: {
+    anonymizeIp: true
+  }
+};
 
 @NgModule({
   imports: [
@@ -42,11 +56,13 @@ const translations = require(`raw-loader!../../${I18N_PATH}`);
     ContextMenuModule.forRoot({useBootstrap4: true}),
     CoreModule,
     CollectionModule,
+    DialogModule,
     DocumentsModule,
     KeycloakAngularModule,
     ViewModule,
     WorkspaceModule,
-    AppRoutingModule // needs to stay last
+    AppRoutingModule, // needs to be declared after all other routing modules
+    Angulartics2Module.forRoot([Angulartics2GoogleAnalytics], angularticsSettings)
   ],
   providers: [
     {

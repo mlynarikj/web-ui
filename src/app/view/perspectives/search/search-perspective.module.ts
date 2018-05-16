@@ -19,24 +19,26 @@
 
 import {NgModule} from '@angular/core';
 import {RouterModule} from '@angular/router';
+import {SearchBoxModule} from '../../../shared/search-box/search-box.module';
 import {SharedModule} from '../../../shared/shared.module';
 import {PostItPerspectiveModule} from '../post-it/post-it-perspective.module';
 import {SearchAllComponent} from './all/search-all.component';
 import {SearchCollectionsComponent} from './collections/search-collections.component';
 import {SearchDocumentsComponent} from './documents/search-documents.component';
 import {SearchLinksComponent} from './links/search-links.component';
+import {SearchPerspectiveRoutingModule} from './search-perspective-routing.module';
 import {SearchPerspectiveComponent} from './search-perspective.component';
 import {SearchResultsDirective} from './search-results.directive';
 import {SearchViewsComponent} from './views/search-views.component';
-import {ViewDetailComponent} from "./views/view-detail/view-detail.component";
-import {SearchBoxModule} from "../../../shared/search-box/search-box.module";
+import {ViewDetailComponent} from './views/view-detail/view-detail.component';
 
 @NgModule({
   imports: [
     RouterModule,
     SharedModule,
     PostItPerspectiveModule,
-    SearchBoxModule
+    SearchBoxModule,
+    SearchPerspectiveRoutingModule
   ],
   declarations: [
     SearchAllComponent,
@@ -64,3 +66,5 @@ import {SearchBoxModule} from "../../../shared/search-box/search-box.module";
 export class SearchPerspectiveModule {
 
 }
+
+export default SearchPerspectiveModule;

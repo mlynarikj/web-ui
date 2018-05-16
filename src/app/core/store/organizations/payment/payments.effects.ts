@@ -18,7 +18,7 @@
  */
 
 import {Injectable} from "@angular/core";
-import {catchError, flatMap, map, mergeMap, tap} from "rxjs/operators";
+import {catchError, flatMap, map, mergeMap, tap, withLatestFrom} from "rxjs/operators";
 import {Actions, Effect, ofType} from "@ngrx/effects";
 import {Action, Store} from "@ngrx/store";
 import {Router} from "@angular/router";
@@ -29,7 +29,10 @@ import {Observable} from "rxjs/Observable";
 import {I18n} from "@ngx-translate/i18n-polyfill";
 import {PaymentsAction, PaymentsActionType} from "./payments.action";
 import {PaymentConverter} from "./payment.converter";
-import {ServiceLimitsAction} from "../service-limits/service-limits.action";
+import {selectOrganizationByWorkspace} from "../organizations.state";
+import {PlatformLocation} from "@angular/common";
+import {isNullOrUndefined} from "util";
+import {BrowserPlatformLocation} from "@angular/platform-browser/src/browser/location/browser_platform_location";
 
 @Injectable()
 export class PaymentsEffects {
@@ -39,10 +42,11 @@ export class PaymentsEffects {
     ofType<PaymentsAction.GetPayments>(PaymentsActionType.GET_PAYMENTS),
     mergeMap(action => {
       return this.organizationService.getPayments().pipe(
-        map(dtos => dtos.map(dto => PaymentConverter.fromDto(action.payload.organizationId, dto))))
-    }),
-    map(payments => new PaymentsAction.GetPaymentsSuccess({ payments: payments })),
-    catchError(error => Observable.of(new PaymentsAction.GetPaymentsFailure({error: error})))
+        map(dtos => dtos.map(dto => PaymentConverter.fromDto(action.payload.organizationId, dto))),
+        map(payments => new PaymentsAction.GetPaymentsSuccess({ payments: payments })),
+        catchError(error => Observable.of(new PaymentsAction.GetPaymentsFailure({error: error})))
+      )
+    })
   );
 
   @Effect()
@@ -61,16 +65,17 @@ export class PaymentsEffects {
     mergeMap(action => {
       return this.organizationService.getPayment(action.payload.paymentId).pipe(
         map(dto => PaymentConverter.fromDto(action.payload.organizationId, dto)),
-        map(payment => ({ payment, nextAction: action.payload.nextAction })))
-    }),
-    flatMap(({ payment, nextAction }) => {
-      const actions: Action[] = [new PaymentsAction.GetPaymentSuccess({ payment: payment })];
-      if (nextAction) {
-        actions.push(nextAction);
-      }
-      return actions;
-    }),
-    catchError(error => Observable.of(new PaymentsAction.GetPaymentFailure({error: error})))
+        map(payment => ({ payment, nextAction: action.payload.nextAction })),
+        flatMap(({ payment, nextAction }) => {
+          const actions: Action[] = [new PaymentsAction.GetPaymentSuccess({ payment: payment })];
+          if (nextAction) {
+            actions.push(nextAction);
+          }
+          return actions;
+        }),
+        catchError(error => Observable.of(new PaymentsAction.GetPaymentFailure({error: error})))
+      )
+    })
   );
 
   @Effect()
@@ -86,12 +91,15 @@ export class PaymentsEffects {
   @Effect()
   public createPayment$: Observable<Action> = this.actions$.pipe(
     ofType<PaymentsAction.CreatePayment>(PaymentsActionType.CREATE_PAYMENT),
-    mergeMap(action => {
-      return this.organizationService.createPayment(PaymentConverter.toDto(action.payload.payment)).pipe(
-        map(dto => PaymentConverter.fromDto(action.payload.organizationId, dto)))
-    }),
-    map(payment => new PaymentsAction.CreatePaymentSuccess({ payment: payment })),
-    catchError(error => Observable.of(new PaymentsAction.CreatePaymentFailure({error: error})))
+    withLatestFrom(this.store$.select(selectOrganizationByWorkspace)),
+    mergeMap(([action, organization]) => {
+      const returnUrl = isNullOrUndefined(action.payload.returnUrl) ? (this.location as BrowserPlatformLocation).location.href : action.payload.returnUrl;
+      return this.organizationService.createPayment(PaymentConverter.toDto(action.payload.payment), returnUrl).pipe(
+        map(dto => PaymentConverter.fromDto(action.payload.organizationId, dto)),
+        map(payment => new PaymentsAction.CreatePaymentSuccess({ payment: payment })),
+        catchError(error => Observable.of(new PaymentsAction.CreatePaymentFailure({error: error})))
+      )
+    })
   );
 
   @Effect()
@@ -108,6 +116,7 @@ export class PaymentsEffects {
               private store$: Store<AppState>,
               private router: Router,
               private actions$: Actions,
-              private organizationService: OrganizationService) {
+              private organizationService: OrganizationService,
+              private location: PlatformLocation) {
   }
 }

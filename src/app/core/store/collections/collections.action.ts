@@ -18,10 +18,11 @@
  */
 
 import {Action} from '@ngrx/store';
+import {ImportedCollection} from '../../dto/imported-collection';
 import {QueryModel} from '../navigation/query.model';
+import {Workspace} from '../navigation/workspace.model';
 import {PermissionModel, PermissionType} from '../permissions/permissions.model';
 import {AttributeModel, CollectionModel} from './collection.model';
-import {ImportedCollection} from "../../dto/imported-collection";
 
 export enum CollectionsActionType {
 
@@ -61,6 +62,10 @@ export enum CollectionsActionType {
   CHANGE_ATTRIBUTE_SUCCESS = '[Collections] Change Attribute :: Success',
   CHANGE_ATTRIBUTE_FAILURE = '[Collections] Change Attribute :: Failure',
 
+  CREATE_ATTRIBUTES = '[Collections] Create Attributes',
+  CREATE_ATTRIBUTES_SUCCESS = '[Collections] Create Attributes :: Success',
+  CREATE_ATTRIBUTES_FAILURE = '[Collections] Create Attributes :: Failure',
+
   REMOVE_ATTRIBUTE = '[Collections] Remove Attribute',
   REMOVE_ATTRIBUTE_SUCCESS = '[Collections] Remove Attribute :: Success',
   REMOVE_ATTRIBUTE_FAILURE = '[Collections] Remove Attribute :: Failure',
@@ -78,7 +83,7 @@ export namespace CollectionsAction {
   export class Get implements Action {
     public readonly type = CollectionsActionType.GET;
 
-    public constructor(public payload: { query: QueryModel }) {
+    public constructor(public payload: { query: QueryModel, workspace?: Workspace }) {
     }
   }
 
@@ -120,7 +125,7 @@ export namespace CollectionsAction {
   export class Create implements Action {
     public readonly type = CollectionsActionType.CREATE;
 
-    public constructor(public payload: { collection: CollectionModel, nextAction?: Action }) {
+    public constructor(public payload: { collection: CollectionModel, callback?: (collection: CollectionModel) => void }) {
     }
   }
 
@@ -218,7 +223,7 @@ export namespace CollectionsAction {
   export class AddFavoriteFailure implements Action {
     public readonly type = CollectionsActionType.ADD_FAVORITE_FAILURE;
 
-    public constructor(public payload: { error: any }) {
+    public constructor(public payload: { collectionId: string, error: any }) {
     }
   }
 
@@ -238,6 +243,27 @@ export namespace CollectionsAction {
 
   export class RemoveFavoriteFailure implements Action {
     public readonly type = CollectionsActionType.REMOVE_FAVORITE_FAILURE;
+
+    public constructor(public payload: { collectionId: string, error: any }) {
+    }
+  }
+
+  export class CreateAttributes implements Action {
+    public readonly type = CollectionsActionType.CREATE_ATTRIBUTES;
+
+    public constructor(public payload: { collectionId: string, attributes: AttributeModel[], nextAction?: Action, callback?: (attributes: AttributeModel[]) => void }) {
+    }
+  }
+
+  export class CreateAttributesSuccess implements Action {
+    public readonly type = CollectionsActionType.CREATE_ATTRIBUTES_SUCCESS;
+
+    public constructor(public payload: { collectionId: string, attributes: AttributeModel[] }) {
+    }
+  }
+
+  export class CreateAttributesFailure implements Action {
+    public readonly type = CollectionsActionType.CREATE_ATTRIBUTES_FAILURE;
 
     public constructor(public payload: { error: any }) {
     }
@@ -322,6 +348,7 @@ export namespace CollectionsAction {
     Delete | DeleteSuccess | DeleteFailure |
     AddFavorite | AddFavoriteSuccess | AddFavoriteFailure |
     RemoveFavorite | RemoveFavoriteSuccess | RemoveFavoriteFailure |
+    CreateAttributes | CreateAttributesSuccess | CreateAttributesFailure |
     ChangeAttribute | ChangeAttributeSuccess | ChangeAttributeFailure |
     RemoveAttribute | RemoveAttributeSuccess | RemoveAttributeFailure |
     ChangePermission | ChangePermissionSuccess | ChangePermissionFailure | Clear;

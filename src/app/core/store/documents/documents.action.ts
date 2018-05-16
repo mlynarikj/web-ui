@@ -31,19 +31,27 @@ export enum DocumentsActionType {
   CREATE_SUCCESS = '[Documents] Create :: Success',
   CREATE_FAILURE = '[Documents] Create :: Failure',
 
-  UPDATE = '[Documents] Update',
   UPDATE_SUCCESS = '[Documents] Update :: Success',
   UPDATE_FAILURE = '[Documents] Update :: Failure',
 
   UPDATE_DATA = '[Documents] Update Data',
   PATCH_DATA = '[Documents] Patch Data',
 
+  ADD_FAVORITE = '[Documents] Add Favorite',
+  ADD_FAVORITE_SUCCESS = '[Documents] Add Favorite :: Success',
+  ADD_FAVORITE_FAILURE = '[Documents] Add Favorite :: Failure',
+
+  REMOVE_FAVORITE = '[Documents] Remove Favorite',
+  REMOVE_FAVORITE_SUCCESS = '[Documents] Remove Favorite :: Success',
+  REMOVE_FAVORITE_FAILURE = '[Documents] Remove Favorite :: Failure',
+
   DELETE = '[Documents] Delete',
   DELETE_CONFIRM = '[Documents] Delete :: Confirm',
   DELETE_SUCCESS = '[Documents] Delete :: Success',
   DELETE_FAILURE = '[Documents] Delete :: Failure',
 
-  CLEAR = '[Documents] Clear'
+  CLEAR = '[Documents] Clear',
+  CLEAR_BY_COLLECTION = '[Documents] Clear by collection'
 
 }
 
@@ -91,13 +99,6 @@ export namespace DocumentsAction {
     }
   }
 
-  export class Update implements Action {
-    public readonly type = DocumentsActionType.UPDATE;
-
-    public constructor(public payload: { document: DocumentModel, toggleFavourite: boolean }) {
-    }
-  }
-
   export class UpdateSuccess implements Action {
     public readonly type = DocumentsActionType.UPDATE_SUCCESS;
 
@@ -115,14 +116,14 @@ export namespace DocumentsAction {
   export class UpdateData implements Action {
     public readonly type = DocumentsActionType.UPDATE_DATA;
 
-    public constructor(public payload: { collectionId: string, documentId: string, data: any }) {
+    public constructor(public payload: { document: DocumentModel }) {
     }
   }
 
   export class PatchData implements Action {
     public readonly type = DocumentsActionType.PATCH_DATA;
 
-    public constructor(public payload: { collectionId: string, documentId: string, data: any }) {
+    public constructor(public payload: { document: DocumentModel }) {
     }
   }
 
@@ -154,6 +155,48 @@ export namespace DocumentsAction {
     }
   }
 
+  export class AddFavorite implements Action {
+    public readonly type = DocumentsActionType.ADD_FAVORITE;
+
+    public constructor(public payload: { collectionId: string, documentId: string }) {
+    }
+  }
+
+  export class AddFavoriteSuccess implements Action {
+    public readonly type = DocumentsActionType.ADD_FAVORITE_SUCCESS;
+
+    public constructor(public payload: { documentId: string }) {
+    }
+  }
+
+  export class AddFavoriteFailure implements Action {
+    public readonly type = DocumentsActionType.ADD_FAVORITE_FAILURE;
+
+    public constructor(public payload: { documentId: string, error: any }) {
+    }
+  }
+
+  export class RemoveFavorite implements Action {
+    public readonly type = DocumentsActionType.REMOVE_FAVORITE;
+
+    public constructor(public payload: { collectionId: string, documentId: string }) {
+    }
+  }
+
+  export class RemoveFavoriteSuccess implements Action {
+    public readonly type = DocumentsActionType.REMOVE_FAVORITE_SUCCESS;
+
+    public constructor(public payload: { documentId: string }) {
+    }
+  }
+
+  export class RemoveFavoriteFailure implements Action {
+    public readonly type = DocumentsActionType.REMOVE_FAVORITE_FAILURE;
+
+    public constructor(public payload: { documentId: string, error: any }) {
+    }
+  }
+
   export class Clear implements Action {
     public readonly type = DocumentsActionType.CLEAR;
 
@@ -161,10 +204,19 @@ export namespace DocumentsAction {
     }
   }
 
+  export class ClearByCollection implements Action {
+    public readonly type = DocumentsActionType.CLEAR_BY_COLLECTION;
+
+    public constructor(public payload: { collectionId: string }) {
+    }
+  }
+
   export type All =
     Get | GetSuccess | GetFailure |
     Create | CreateSuccess | CreateFailure |
-    Update | UpdateData | PatchData | UpdateSuccess | UpdateFailure |
+    AddFavorite | AddFavoriteSuccess | AddFavoriteFailure |
+    RemoveFavorite | RemoveFavoriteSuccess | RemoveFavoriteFailure |
+    UpdateData | PatchData | UpdateSuccess | UpdateFailure |
     Delete | DeleteSuccess | DeleteFailure | DeleteConfirm |
-    Clear;
+    Clear | ClearByCollection;
 }

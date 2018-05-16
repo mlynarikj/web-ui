@@ -18,8 +18,9 @@
  */
 
 import {NgModule} from '@angular/core';
-import {SharedModule} from '../../../shared/shared.module';
 import {RouterModule} from '@angular/router';
+import {SharedModule} from '../../../shared/shared.module';
+import {ChartPerspectiveRoutingModule} from './chart-perspective-routing.module';
 import {ChartPerspectiveComponent} from './chart-perspective.component';
 import {AttributeSelectComponent} from './components/attribute-select/attribute-select.component';
 import {ChartVisualizationComponent} from './components/chart-visualization/chart-visualization.component';
@@ -27,7 +28,8 @@ import {ChartVisualizationComponent} from './components/chart-visualization/char
 @NgModule({
   imports: [
     SharedModule,
-    RouterModule
+    RouterModule,
+    ChartPerspectiveRoutingModule
   ],
   declarations: [
     ChartPerspectiveComponent,

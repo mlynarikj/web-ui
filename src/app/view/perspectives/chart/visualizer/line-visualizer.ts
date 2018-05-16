@@ -17,10 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {newPlot} from 'plotly.js';
 import {DocumentModel} from '../../../../core/store/documents/document.model';
 import {ChartVisualizer} from './chart-visualizer';
+import {CollectionModel} from '../../../../core/store/collections/collection.model';
 
 export class LineVisualizer extends ChartVisualizer {
+
+  private collections: CollectionModel[];
 
   private documents: DocumentModel[];
 
@@ -28,7 +32,8 @@ export class LineVisualizer extends ChartVisualizer {
 
   private attributeY: string;
 
-  public update(documents: DocumentModel[], attributeX: string, attributeY: string) {
+  public update(collections: CollectionModel[], documents: DocumentModel[], attributeX: string, attributeY: string) {
+    this.collections = collections;
     this.documents = this.sorter.sortData(documents);
     this.attributeX = attributeX;
     this.attributeY = attributeY;
@@ -59,10 +64,15 @@ export class LineVisualizer extends ChartVisualizer {
     };
 
     if (this.documents && this.documents[0]) {
-      trace['marker'] = {color: this.documents[0].collection.color};
+      trace['marker'] = {color: this.getCollectionColor(this.documents[0].collectionId)};
     }
 
     return trace;
+  }
+
+  private getCollectionColor(id: string): string {
+    const collection = this.collections.find(coll => coll.id === id);
+    return collection && collection.color;
   }
 
   private addBothAxisValues(trace: object) {
@@ -75,13 +85,12 @@ export class LineVisualizer extends ChartVisualizer {
   }
 
   private addSingleAxisValues(trace: object, attribute: string, axis: string) {
-    const values = this.documents.map(document => document.data[attribute]);
-    trace[axis] = values;
+    trace[axis] = this.documents.map(document => document.data[attribute]);
   }
 
   public showChart() {
     const shownElement = this.chartElement.nativeElement;
-    Plotly.newPlot(shownElement, this.data, this.style);
+    newPlot(shownElement, this.data, this.style);
   }
 
 }
